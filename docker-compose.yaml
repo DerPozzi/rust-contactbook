@@ -1,0 +1,38 @@
+version: '3.4'
+
+services:
+
+  database:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME = root
+      - MONGO_INITDB_ROOT_PASSWORD = Passwort1
+    volumes:
+    - ./db:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 5s
+      retries: 1
+      start_period: 20s
+
+
+
+  mongoex:
+    image: mongo-express
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=database
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ADMINUSERNAME = admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD = admin
+    depends_on:
+      database:
+        condition: service_healthy
+
+    ports:
+      - "8081:8081"
+    links:
+    - database
