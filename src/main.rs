@@ -42,7 +42,7 @@ async fn main_menu(db_url: String) {
             2 => println!("edit_contact();"),
             3 => show_all_contacts(my_collection.clone()).await.expect("{msg}"),
             4 => show_specific_contact(my_collection.clone()).await.expect("ERROR: {msg}"),
-            5 => println!("delete_contact();"),
+            5 => delete_contact(my_collection.clone()).await,
             6..=u8::MAX => println!("ERROR: Input didn't match a task"),
         }
     }
@@ -92,21 +92,55 @@ async fn show_specific_contact (collection: Collection<Contact>) -> Result<(), B
 
         
 
-    let mut result = get_specific_contact(collection, filter).await?;
-    let mut i = 1;
+    let result = get_specific_contact(collection, filter).await?;
 
-    while let Some(contact) = result.try_next().await? {
-        println!("{}.\t{} {}", i, contact.name, contact.last_name);
-        println!("\tPhone: {}", contact.phone);
-        println!("\tEmail: {}", contact.email);
-        println!("\tBirthday: {}", contact.birthday);
-        println!("\tNotes: {}", contact.notes);
-        println!();
-        i += 1;
+
+    match result {
+        Some(contact) => {
+            println!();
+            println!("\t{} {}", contact.name, contact.last_name);
+            println!("\tPhone: {}", contact.phone);
+            println!("\tEmail: {}", contact.email);
+            println!("\tBirthday: {}", contact.birthday);
+            println!("\tNotes: {}", contact.notes);
+            println!();
+        },
+        None => println!("Contact not found, try again..."),
     }
-
     Ok(())
 }
+
+async fn delete_contact(collection: Collection<Contact>) {
+    let mut searched_name = String::new();
+    let mut searched_last_name = String::new();
+    let filter: Document;
+
+ 
+    println!("Enter the name of the contact:");
+    stdin().read_line(&mut searched_name).expect("ERROR: {msg}");
+    searched_name = searched_name.trim().parse().unwrap();
+    
+    println!("Enter the lastname of the contact:");
+    stdin().read_line(&mut searched_last_name).expect("ERROR: {msg}");
+    searched_last_name = searched_last_name.trim().parse().unwrap();
+    
+    filter = doc! {
+        "name": searched_name,
+        "last_name": searched_last_name
+    };
+
+
+    let result = collection.find_one_and_delete(filter, None).await.expect("ERROR: {msg}");
+
+    // TODO: If multiple contacts with teh same name exist only the first in db gets ouptutted (current)
+    // TODO: Maybe output >> "Multiple Contacts found" 
+
+    match result {
+        Some(_contact) => println!("Contact was successfully removed!"),
+        None => println!("Contact not found, try again..."),
+    }
+}
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>>{
@@ -126,8 +160,9 @@ async fn get_all_contacts (collection: Collection<Contact>) -> Result<mongodb::C
     Ok(cursor)
 }
 
-async fn get_specific_contact (collection: Collection<Contact>, filter: Document) -> Result<mongodb::Cursor<Contact>, Box<dyn Error>> {
-    let cursor = collection.find(filter, None).await?;
+async fn get_specific_contact (collection: Collection<Contact>, filter: Document) -> Result<Option<Contact>, Box<dyn Error>> {
+
+    let cursor = collection.find_one(filter, None).await?;
     Ok(cursor)
 }
 
