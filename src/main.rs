@@ -5,7 +5,7 @@ use futures::stream::TryStreamExt;
 use mongodb::bson::*;
 use mongodb::options::{ClientOptions, FindOptions};
 use mongodb::{self, Client, Collection};
-use std::env;
+use std::{env};
 use std::io::stdin;
 use std::error::Error;
 use tokio;
@@ -41,7 +41,7 @@ async fn main_menu(db_url: String) {
             1 => println!("add_contact();"),
             2 => println!("edit_contact();"),
             3 => show_all_contacts(my_collection.clone()).await.expect("{msg}"),
-            4 => println!("search_contact();"),
+            4 => show_specific_contact(my_collection.clone()).await.expect("ERROR: {msg}"),
             5 => println!("delete_contact();"),
             6..=u8::MAX => println!("ERROR: Input didn't match a task"),
         }
@@ -56,6 +56,55 @@ async fn show_all_contacts(collection: Collection<Contact>) -> Result<(), Box<dy
         println!("{}.\t {} {}", i, contact.name, contact.last_name);
         i += 1;
     }
+    Ok(())
+}
+
+async fn show_specific_contact (collection: Collection<Contact>) -> Result<(), Box<dyn Error>> {
+    let mut input = String::new();
+    let mut searched_name = String::new();
+    let filter: Document;
+
+    loop {
+        println!("Do you want to search after name (1) or lastname (2)? ");
+        stdin().read_line(&mut input).expect("ERROR: {msg}");
+
+        let input: u8 = input.trim().parse().unwrap();
+
+    match input {
+        1 => {
+            println!("Enter the name of the contact:");
+            stdin().read_line(&mut searched_name).expect("ERROR: {msg}");
+            searched_name = searched_name.trim().parse().unwrap();
+            filter = doc! {"name": searched_name};
+            break;
+        },
+        2 => {
+            println!("Enter the name of the contact:");
+            stdin().read_line(&mut searched_name).expect("ERROR: {msg}");
+            searched_name = searched_name.trim().parse().unwrap();
+            filter = doc! {"last_name": searched_name};
+            break;
+        },
+        _ => {
+            println!("Oops, something went wrong, try again... ");
+        }
+    }}
+
+        
+
+    let mut result = get_specific_contact(collection, filter).await?;
+    let mut i = 1;
+
+    while let Some(contact) = result.try_next().await? {
+        println!("{}.\t{} {}", i, contact.name, contact.last_name);
+        println!("\tPhone: {}", contact.phone);
+        println!("\tEmail: {}", contact.email);
+        println!("\tBirthday: {}", contact.birthday);
+        println!("\tNotes: {}", contact.notes);
+        println!();
+        i += 1;
+    }
+
     Ok(())
 }
 
@@ -74,6 +123,11 @@ async fn get_all_contacts (collection: Collection<Contact>) -> Result<mongodb::C
     let find_options = FindOptions::builder().sort(doc! {"name": 1}).build();
     let cursor = collection.find(None, find_options).await?;
 
+    Ok(cursor)
+}
+
+async fn get_specific_contact (collection: Collection<Contact>, filter: Document) -> Result<mongodb::Cursor<Contact>, Box<dyn Error>> {
+    let cursor = collection.find(filter, None).await?;
     Ok(cursor)
 }
 
