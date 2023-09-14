@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use futures::TryStreamExt;
+
 use std::error::Error;
 
 mod database;
