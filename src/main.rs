@@ -17,9 +17,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let contacts = get_contact_by_name(&contact_collection, name).await?;
 
-    if contacts.len() == 0 {
-        println!("No contact \"{}\" found", name);
-    }
+    println!(
+        "Found {} contacts with the name \"{}\"",
+        contacts.len(),
+        name
+    );
     for contact in contacts {
         println!("{:?}", contact)
     }
