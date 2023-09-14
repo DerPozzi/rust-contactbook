@@ -7,12 +7,12 @@ use std::{env, error::Error};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct Contact {
-    name: String,
-    last_name: String,
-    phone: String,
-    email: String,
-    birthday: String,
-    notes: String,
+    pub name: String,
+    pub last_name: String,
+    pub phone: String,
+    pub email: String,
+    pub birthday: String,
+    pub notes: String,
 }
 
 pub async fn connect_db() -> Result<mongodb::Database, Box<dyn Error>> {
