@@ -8,3 +8,4 @@ debug/
 /db
 /target
 Cargo.lock
+.vscode/
