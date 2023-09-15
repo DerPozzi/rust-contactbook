@@ -4,7 +4,7 @@ use mongodb::{bson::*, Client};
 use serde::{Deserialize, Serialize};
 use std::{env, error::Error};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct Contact {
     pub name: String,
@@ -15,7 +15,7 @@ pub struct Contact {
     pub notes: String,
 }
 
-pub async fn connect_db() -> Result<mongodb::Database, Box<dyn Error>> {
+pub async fn connect_to_db() -> Result<mongodb::Database, Box<dyn Error>> {
     let db_url = env::var("MONGODB_URL")?;
     let db = env::var("MONGO_DB")?;
     let db_options = ClientOptions::parse(db_url).await?;
@@ -27,7 +27,7 @@ pub async fn connect_db() -> Result<mongodb::Database, Box<dyn Error>> {
     Ok(database)
 }
 
-pub async fn get_contact_by_name(
+pub async fn find_contact_by_name(
     collection: &mongodb::Collection<Contact>,
     name: &str,
 ) -> Result<Vec<Contact>, Box<dyn Error>> {
@@ -38,4 +38,12 @@ pub async fn get_contact_by_name(
         .build();
     let cursor = collection.find(filter, sort_option).await?;
     Ok(cursor.try_collect().await?)
+}
+
+pub async fn insert_new_contact(
+    collection: &mongodb::Collection<Contact>,
+    new_contact: Contact,
+) -> Result<(), Box<dyn Error>> {
+    collection.insert_one(new_contact, None).await?;
+    Ok(())
 }
