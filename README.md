@@ -1,15 +1,34 @@
-# Contactbook using Rust
-- Small CLI app, that saves Contacts in a mongodb database
+# Rust-Contactbook
 
-## Features
-1. add new contacts with:
-    - Name
-    - Lastname
-    - Phone
-    - Email
-    - Birthday
-    - Notes
-2. remove contacts
-3. display contacts
-4. search contacts
-5. edit contacts
+CLI-Tool to save, edit and search for contacts in mongodb database.
+MongoDB and MongoExpress running as containers with docker compose.
+
+## Install
+
+1. Clone repository
+2. Cd in directory
+3. Spin up docker compose
+
+```bash
+docker compose up
+```
+
+4. Run Cargo project
+
+```bash
+cargo run
+```
+
+5. Enjoy
+
+## TODO
+
+- [X] Find contacts by first name
+  - Casesensitive and complete search
+- [X] Add new Contacts to DB
+- [ ] Main Menu
+- [ ] Edit Contacts
+- [ ] Delete Contacts
+- [ ] Display all contacts
+- [ ] QOL improvements
+- [ ] Prettyfy
